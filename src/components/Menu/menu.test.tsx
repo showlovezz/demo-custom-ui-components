@@ -14,6 +14,7 @@ const testProps: MenuProps = {
 const testVerProps: MenuProps = {
 	defaultIndex: '0',
 	mode: 'vertical',
+	defaultOpenSubMenus: ['4'],
 };
 
 const GenerateMenu = (props: MenuProps) => {
@@ -24,6 +25,9 @@ const GenerateMenu = (props: MenuProps) => {
 			<MenuItem>third item</MenuItem>
 			<SubMenu title='dropdown'>
 				<MenuItem>dropdown 1</MenuItem>
+			</SubMenu>
+			<SubMenu title='submenu 2'>
+				<MenuItem>dropdown 2</MenuItem>
 			</SubMenu>
 		</Menu>
 	);
@@ -46,12 +50,13 @@ const createStyleFile = () => {
 };
 
 let wrapper: RenderResult,
+	wrapper2: RenderResult,
 	menuElement: HTMLElement,
 	activeElement: HTMLElement,
 	disabledElement: HTMLElement;
 
 // 每一個 Case 跑完，都會執行 cleanup function
-describe('test Menu Component', () => {
+describe('test Menu and MenuItem component in default(horizontal) mode', () => {
 	beforeEach(() => {
 		wrapper = render(GenerateMenu(testProps));
 		wrapper.container.append(createStyleFile());
@@ -63,7 +68,7 @@ describe('test Menu Component', () => {
 	it('should render correct Menu and MenuItem based on default props', () => {
 		expect(menuElement).toBeInTheDocument();
 		expect(menuElement).toHaveClass('viking-menu test');
-		expect(menuElement.querySelectorAll(':scope > li').length).toEqual(4);
+		expect(menuElement.querySelectorAll(':scope > li').length).toEqual(5);
 		expect(activeElement).toHaveClass('menu-item is-active');
 		expect(disabledElement).toHaveClass('menu-item is-disabled');
 	});
@@ -73,22 +78,12 @@ describe('test Menu Component', () => {
 
 		fireEvent.click(thirdItem);
 		expect(thirdItem).toHaveClass('is-active');
-
 		expect(activeElement).not.toHaveClass('is-active');
 		expect(testProps.onSelect).toHaveBeenCalledWith('2');
 
 		fireEvent.click(disabledElement);
 		expect(disabledElement).not.toHaveClass('is-active');
 		expect(testProps.onSelect).not.toHaveBeenCalledWith('1');
-	});
-
-	it('should render vertical mode when mode is set to vertical', () => {
-		cleanup();
-
-		const wrapper = render(GenerateMenu(testVerProps));
-		const menuElement = wrapper.getByTestId('test-menu');
-
-		expect(menuElement).toHaveClass('menu-vertical');
 	});
 
 	it('should show dropdown items when hover on subMenu', async () => {
@@ -108,5 +103,31 @@ describe('test Menu Component', () => {
 		await waitFor(() => {
 			expect(wrapper.queryByText('dropdown 1')).not.toBeVisible();
 		});
+	});
+});
+
+describe('test Menu and MenuItem component in vertical mode', () => {
+	beforeEach(() => {
+		wrapper2 = render(GenerateMenu(testVerProps));
+		wrapper2.container.append(createStyleFile());
+	});
+
+	it('should render vertical mode when mode is set to vertical', () => {
+		const menuElement = wrapper2.getByTestId('test-menu');
+
+		expect(menuElement).toHaveClass('menu-vertical');
+	});
+
+	it('should show dropdown items when click on subMenu for vertical mode', () => {
+		const dropDownItem = wrapper2.queryByText('dropdown 1');
+
+		expect(dropDownItem).not.toBeVisible();
+
+		fireEvent.click(wrapper2.getByText('dropdown'));
+		expect(dropDownItem).toBeVisible();
+	});
+
+	it('should show subMenu dropdown when defaultOpenSubMenus contains SubMenu index', () => {
+		expect(wrapper2.queryByText('dropdown 2')).toBeVisible();
 	});
 });

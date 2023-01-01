@@ -4,6 +4,7 @@ import React, {
 	ReactNode,
 	useCallback,
 	useContext,
+	useRef,
 	useState,
 } from 'react';
 import classNames from 'classnames';
@@ -19,6 +20,7 @@ export interface SubMenuProps {
 }
 
 const SubMenu = ({ index, title, children, className }: SubMenuProps) => {
+	const timer = useRef<number>();
 	const context = useContext(MenuContext);
 	const openSubMenus = context.defaultOpenSubMenus as Array<string>;
 	const isOpened = index && context.mode === 'vertical' ? openSubMenus.includes(index) : false;
@@ -35,13 +37,12 @@ const SubMenu = ({ index, title, children, className }: SubMenuProps) => {
 		},
 		[menuOpen],
 	);
-	let timer: any;
 	const handleMouse = useCallback((e: MouseEvent, toggle: boolean) => {
-		clearTimeout(timer);
+		clearTimeout(timer.current);
 		e.preventDefault();
 
 		// 非同步
-		timer = setTimeout(() => {
+		timer.current = window.setTimeout(() => {
 			setMenuOpen(toggle);
 		}, 300);
 	}, []);
